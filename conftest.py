@@ -8,6 +8,7 @@ logger = logging.getLogger('streamsets.ci_cd_poc')
 def pytest_addoption(parser):
     parser.addoption('--pipeline-id')
     parser.addoption('--upgrade-jobs', action='store_true')
+    parser.addoption('--environment')
 
 
 @pytest.fixture(scope='session')
@@ -19,6 +20,7 @@ def sch(sch_session):
 def pipeline(sch, request):
     pipeline_id = request.config.getoption('pipeline_id')
     pipeline_ = sch.pipelines.get(pipeline_id=pipeline_id)
+    environment = request.config.getoption('environment')
 
     yield pipeline_
 
@@ -30,7 +32,8 @@ def pipeline(sch, request):
         if request.config.getoption('upgrade_jobs'):
             pipeline_ = sch.pipelines.get(pipeline_id=pipeline_id)
             jobs_to_upgrade = [job for job in sch.jobs.get_all(pipeline_id=pipeline_id)
-                               if job.pipeline_commit_label != f'v{pipeline_.version}']
+                               if (job.pipeline_commit_label != f'v{pipeline_.version}'
+                                   and job.job_name.startswith(environment))]
             if jobs_to_upgrade:
                 logger.info('Upgrading jobs: %s ...', ', '.join(str(job) for job in jobs_to_upgrade))
                 sch.upgrade_job(*jobs_to_upgrade)
