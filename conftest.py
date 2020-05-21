@@ -9,6 +9,7 @@ def pytest_addoption(parser):
     parser.addoption('--pipeline-id')
     parser.addoption('--upgrade-jobs', action='store_true')
     parser.addoption('--environment')
+    parser.addoption('--pipeline_version')
 
 
 @pytest.fixture(scope='session')
