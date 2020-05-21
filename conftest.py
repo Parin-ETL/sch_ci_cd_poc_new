@@ -24,9 +24,6 @@ def pipeline(sch, request):
     environment = request.config.getoption('environment')
     pipeline_version = request.config.getoption('pipeline_version')
 
-    logger.info("environment: " + environment)
-    logger.info("pipeline_version:" + pipeline_version)
-
     yield pipeline_
 
     jobs_to_delete = sch.jobs.get_all(pipeline_id=pipeline_.pipeline_id, description='CI/CD test job')
@@ -36,6 +33,10 @@ def pipeline(sch, request):
 
     if not request.session.testsfailed:
         if request.config.getoption('upgrade_jobs'):
+
+            logger.info("environment: " + environment)
+            logger.info("pipeline_version:" + pipeline_version)
+
             pipeline_ = sch.pipelines.get(pipeline_id=pipeline_id)
             jobs_to_upgrade = [job for job in sch.jobs.get_all(pipeline_id=pipeline_id)
                                if (job.pipeline_commit_label != f'v{pipeline_.version}'
